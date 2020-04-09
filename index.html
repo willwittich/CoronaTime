@@ -46,6 +46,8 @@
         for (let i = 0; i < maxPredictions; i++) { // and class labels
             labelContainer.appendChild(document.createElement("div"));
         }
+        labelContainer.appendChild(document.createElement("div"));
+        labelContainer.childNodes[2].innerHTML = "Number face touches: " + facetouchcounter;
     }
 
     async function loop() {
@@ -65,6 +67,7 @@
             if (prediction[i].className === "Touch" && prediction[i].probability.toFixed(2) > 0.95) {
                 facetouchcounter += 1;
                 console.log("Face Touch Counter",facetouchcounter);
+                labelContainer.childNodes[2].innerHTML = "Number face touches: " + facetouchcounter;
             }
             
             const classPrediction = 
@@ -79,5 +82,3 @@
 
    <h5> Add features here </h5>
 </HTML>
-
-
