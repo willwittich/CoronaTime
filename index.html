@@ -19,7 +19,8 @@
     const URL = "https://teachablemachine.withgoogle.com/models/x-o-qixAx/";
 
     let model, webcam, labelContainer, maxPredictions;
-
+    let facetouchcounter = 0;
+    
     // Load the image model and setup the webcam
     async function init() {
         const modelURL = URL + "model.json";
@@ -53,12 +54,20 @@
         window.requestAnimationFrame(loop);
     }
 
+    
+    
+    
     // run the webcam image through the image model
     async function predict() {
         // predict can take in an image, video or canvas html element
         const prediction = await model.predict(webcam.canvas);
         for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
+            if (prediction[i].className === "Touch" && prediction[i].probability.toFixed(2) > 0.95) {
+                facetouchcounter += 1;
+                console.log("Face Touch Counter",facetouchcounter);
+            }
+            
+            const classPrediction = 
                 prediction[i].className + ": " + prediction[i].probability.toFixed(2);
             labelContainer.childNodes[i].innerHTML = classPrediction;
         }
@@ -70,3 +79,5 @@
 
    <h5> Add features here </h5>
 </HTML>
+
+
