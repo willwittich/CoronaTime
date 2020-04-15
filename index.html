@@ -153,10 +153,10 @@
             // predict can take in an image, video or canvas html element
             const prediction = await model.predict(webcam.canvas);
             for (let i = 0; i < maxPredictions; i++) {
-                if (prediction[i].className === "Touch" && prediction[i].probability.toFixed(2) > 0.99) {
+                if (prediction[i].className === "Hands" && prediction[i].probability.toFixed(2) > 0.99) {
                     facetouchcounter += 1;
                     console.log("Face Touch Counter",facetouchcounter);
-                    labelContainer.childNodes[2].innerHTML = "Number face touches: " + facetouchcounter;
+                    labelContainer.childNodes[2].innerHTML = "Seconds of face touching: " + facetouchcounter;
                     //Here store and update the timestamp everytime there is a facetouch
                 }
 
