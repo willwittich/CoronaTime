@@ -4,10 +4,8 @@
 
 <p id="demo"></p>
 <h1> Team Combat Corona </h1>
+<h4> Help combat the spread of Covid-19 by learning to stop touching your face! </h4>
 
-    <h4> Help combat Covid-19 by learning to stop touching your face! </h4>
-
-<div>Powered by Teachable Machine Image Model</div>
 <button type="button" onclick="init()">Start</button>
 <button type="button" onclick="seeGraph()">See Graph</button>
 <div id="webcam-container"></div>
@@ -19,15 +17,12 @@
 <script type="text/javascript">
     // More API functions here:
     // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
-
     // the link to your model provided by Teachable Machine export panel
     const URL = "https://teachablemachine.withgoogle.com/models/cdCLqv5-Q/";
-
     let model, webcam, labelContainer, maxPredictions;
     let facetouchcounter = 0;
     let individualfacetouches = 0;
     var flag = false;
-
     var dayArray = [
             [Number, Number],
             [0, 0],
@@ -56,7 +51,6 @@
             [23, 0]
         ];
 
-
     // Load the image model and setup the webcam
     async function init() {
         const modelURL = URL + "model.json";
@@ -79,21 +73,17 @@
         // append elements to the DOM
         document.getElementById("webcam-container").appendChild(webcam.canvas);
         labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
-            labelContainer.appendChild(document.createElement("div"));
-        }
-
-        labelContainer.appendChild(document.createElement("div"));
-        labelContainer.childNodes[2].innerHTML = "Number of Face touches: " + facetouchcounter;
-
-        labelContainer.appendChild(document.createElement("div"));
-        labelContainer.childNodes[3].innerHTML = "Flag: " + flag;
-
-        labelContainer.appendChild(document.createElement("div"));
-        labelContainer.childNodes[4].innerHTML = "Number of Total Facetouches: " + individualfacetouches;
+        // for (let i = 0; i < maxPredictions; i++) { // and class labels
+        //     labelContainer.appendChild(document.createElement("div"));
+        // }
+        // labelContainer.appendChild(document.createElement("div"));
+        // labelContainer.childNodes[2].innerHTML = "Number of Face touches: " + facetouchcounter;
 
         // labelContainer.appendChild(document.createElement("div"));
-        // labelContainer.childNodes[5].innerHTML = "Facetouch per Hour Counter: " + dayArray;
+        // labelContainer.childNodes[2].innerHTML = "Flag: " + flag;
+
+        labelContainer.appendChild(document.createElement("div"));
+        labelContainer.childNodes[0].innerHTML = "Number of Total Facetouches: " + individualfacetouches;
     }
 
     async function loop() {
@@ -101,9 +91,6 @@
         await predict();
         window.requestAnimationFrame(loop);
     }
-
-
-
 
     // run the webcam image through the image model
     async function predict() {
@@ -113,9 +100,8 @@
             if (flag === false && prediction[i].className === "Hands" && prediction[i].probability.toFixed(2) > 0.95) {
                 facetouchcounter += 1;
                 console.log("Face Touch Counter",facetouchcounter);
-                labelContainer.childNodes[2].innerHTML = "Number face touches: " + facetouchcounter;
                 flag = true
-                labelContainer.childNodes[3].innerHTML = "Flag: " + flag;
+                labelContainer.childNodes[0].innerHTML = "You have touched your face " + facetouchcounter + " times this session";
                 break
               }
 
@@ -123,9 +109,7 @@
                 flag = false;
                 individualfacetouches += 1;
                 console.log("individual facetouches",individualfacetouches);
-                labelContainer.childNodes[3].innerHTML = "Flag: " + flag;
-                labelContainer.childNodes[4].innerHTML = "individual face touches: " + individualfacetouches;
-                //Input time stamp here
+                labelContainer.childNodes[0].innerHTML = "You have touched your face " + facetouchcounter + " times this session";
 
                 var d = new Date();
                 var dHour = d.getHours();
@@ -135,30 +119,23 @@
                         dayArray[q][1] ++;
                     }
                 }
-
-                // test 
-                // document.getElementById("demo").innerHTML = dayArray;
-
                 break
                 }
-
-
-
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+            // Deletes hands/nohands
+            // const classPrediction =
+            //     prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            // labelContainer.childNodes[i].innerHTML = classPrediction;
         }
     }
 
     async function seeGraph() {
-        // Test print 
-        document.getElementById("demo").innerHTML = dayArray;
-
+        // Test print
+        // document.getElementById("demo").innerHTML = dayArray;
         google.charts.load("current", {packages:['corechart']});
         google.charts.setOnLoadCallback(drawChart);
-    
+
         var data = google.visualization.arrayToDataTable(dayArray);
-  
+
         var options = {
         title: "Hourly Progress",
         width: 600,
@@ -171,24 +148,12 @@
          hAxis: {
             title: 'Hours',
         }
-
-
       };
       var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
       chart.draw(data, options);
     }
-    
-
 </script>
 
-
-
-<body>
-    <h4> No Touch: 1.00 means you are not touching your face </h4>
-    <h4> Touch: 1.00 means you are touching your face </h4>
-
-   <h5> Add features here </h5>
-</body>
 
 <body>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
