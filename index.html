@@ -1,179 +1,222 @@
 <!doctype html>
+
 <HTML>
-<body style="background-color:lightcoral;">
 
-  <html lang="en">
-  <head>
-  <title>CSS Template</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-  * {
-    box-sizing: border-box;
-  }
+<p id="demo"></p>
+<h1> Team Combat Corona </h1>
 
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-  }
+    <h4> Help combat Covid-19 by learning to stop touching your face! </h4>
 
-  /* Style the header */
-  header {
-    background-color: #666;
-    padding: 30px;
-    text-align: center;
-    font-size: 35px;
-    color: white;
-  }
+<div>Powered by Teachable Machine Image Model</div>
+<button type="button" onclick="init()">Start</button>
+<button type="button" onclick="seeGraph()">See Graph</button>
+<div id="webcam-container"></div>
+<div id="label-container"></div>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    // More API functions here:
+    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
 
-  /* Container for flexboxes */
-  section {
-    display: -webkit-flex;
-    display: flex;
-  }
+    // the link to your model provided by Teachable Machine export panel
+    const URL = "https://teachablemachine.withgoogle.com/models/cdCLqv5-Q/";
 
-  /* Style the navigation menu */
-  nav {
-    -webkit-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    background: #ccc;
-    padding: 20px;
-  }
+    let model, webcam, labelContainer, maxPredictions;
+    let facetouchcounter = 0;
+    let individualfacetouches = 0;
+    var flag = false;
 
-  /* Style the list inside the menu */
-  nav ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  /* Style the content */
-  article {
-    -webkit-flex: 3;
-    -ms-flex: 3;
-    flex: 3;
-    background-color: #f1f1f1;
-    padding: 10px;
-  }
-
-  /* Style the footer */
-  footer {
-    background-color: #777;
-    padding: 10px;
-    text-align: center;
-    color: white;
-  }
-
-  /* Responsive layout - makes the menu and the content (inside the section) sit on top of each other instead of next to each other */
-  @media (max-width: 600px) {
-    section {
-      -webkit-flex-direction: column;
-      flex-direction: column;
-    }
-  }
-  </style>
-  </head>
-  <body>
+    var dayArray = [
+            [Number, Number],
+            [0, 0],
+            [1, 0],
+            [2, 0],
+            [3, 0],
+            [4, 0],
+            [5, 0],
+            [6, 0],
+            [7, 0],
+            [8, 0],
+            [9, 0],
+            [10, 0],
+            [11, 0],
+            [12, 0],
+            [13, 0],
+            [14, 0],
+            [15, 0],
+            [16, 0],
+            [17, 0],
+            [18, 0],
+            [19, 0],
+            [20, 0],
+            [21, 0],
+            [22, 0],
+            [23, 0]
+        ];
 
 
+    // Load the image model and setup the webcam
+    async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
 
-  <header>
-    <h2>Team Combat Corona</h2>
-  </header>
+        // load the model and metadata
+        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+        // or files from your local hard drive
+        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
 
-  <section>
-    <nav>
-      <ul>
-        <li><a href="#">Current Session</a></li>
-        <li><a href="#">Overtime</a></li>
-        <li><a href="#">Leaderboards</a></li>
-      </ul>
-    </nav>
+        // Convenience function to setup a webcam
+        const flip = true; // whether to flip the webcam
+        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+        await webcam.setup(); // request access to the webcam
+        await webcam.play();
+        window.requestAnimationFrame(loop);
 
-    <article>
-      <h1>Help combat Covid-19 by learning to stop touching your face!</h1>
-      <p>The CDC has identified that one method for Coronavirus to spread is via virus transmission between surfaces. As your hands often come into contact with many surfaces throughout the day, your hands may contract the virus. With this in mind, touching your face with your hands is an easy way to transmit the virus into your body.
-</p>
-      <p>Our mission is to have people realize their tendencies to touch their faces in order to stop.</p>
-    </article>
-    <button type="button" onclick="init()">Start</button>
-    <div id="webcam-container"></div>
-    <div id="label-container"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-    <script type="text/javascript">
-        // More API functions here:
-        // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
-
-        // the link to your model provided by Teachable Machine export panel
-        const URL = "https://teachablemachine.withgoogle.com/models/cdCLqv5-Q/";
-
-        let model, webcam, labelContainer, maxPredictions;
-        let facetouchcounter = 0;
-
-        // Load the image model and setup the webcam
-        async function init() {
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
-
-            // load the model and metadata
-            // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-            // or files from your local hard drive
-            // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
-
-            // Convenience function to setup a webcam
-            const flip = true; // whether to flip the webcam
-            webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-            await webcam.setup(); // request access to the webcam
-            await webcam.play();
-            window.requestAnimationFrame(loop);
-
-            // append elements to the DOM
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            labelContainer = document.getElementById("label-container");
-            for (let i = 0; i < maxPredictions; i++) { // and class labels
-                labelContainer.appendChild(document.createElement("div"));
-            }
+        // append elements to the DOM
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < maxPredictions; i++) { // and class labels
             labelContainer.appendChild(document.createElement("div"));
-            labelContainer.childNodes[2].innerHTML = "Number face touches: " + facetouchcounter;
         }
 
-        async function loop() {
-            webcam.update(); // update the webcam frame
-            await predict();
-            window.requestAnimationFrame(loop);
-        }
+        labelContainer.appendChild(document.createElement("div"));
+        labelContainer.childNodes[2].innerHTML = "Number of Face touches: " + facetouchcounter;
+
+        labelContainer.appendChild(document.createElement("div"));
+        labelContainer.childNodes[3].innerHTML = "Flag: " + flag;
+
+        labelContainer.appendChild(document.createElement("div"));
+        labelContainer.childNodes[4].innerHTML = "Number of Total Facetouches: " + individualfacetouches;
+
+        // labelContainer.appendChild(document.createElement("div"));
+        // labelContainer.childNodes[5].innerHTML = "Facetouch per Hour Counter: " + dayArray;
+    }
+
+    async function loop() {
+        webcam.update(); // update the webcam frame
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
 
 
 
 
-        // run the webcam image through the image model
-        async function predict() {
-            // predict can take in an image, video or canvas html element
-            const prediction = await model.predict(webcam.canvas);
-            for (let i = 0; i < maxPredictions; i++) {
-                if (prediction[i].className === "Hands" && prediction[i].probability.toFixed(2) > 0.99) {
-                    facetouchcounter += 1;
-                    console.log("Face Touch Counter",facetouchcounter);
-                    labelContainer.childNodes[2].innerHTML = "Seconds of face touching: " + facetouchcounter;
-                    //Here store and update the timestamp everytime there is a facetouch
+    // run the webcam image through the image model
+    async function predict() {
+        // predict can take in an image, video or canvas html element
+        const prediction = await model.predict(webcam.canvas);
+        for (let i = 0; i < maxPredictions; i++) {
+            if (flag === false && prediction[i].className === "Hands" && prediction[i].probability.toFixed(2) > 0.95) {
+                facetouchcounter += 1;
+                console.log("Face Touch Counter",facetouchcounter);
+                labelContainer.childNodes[2].innerHTML = "Number face touches: " + facetouchcounter;
+                flag = true
+                labelContainer.childNodes[3].innerHTML = "Flag: " + flag;
+                break
+              }
+
+            if (flag === true && prediction[i].className === "Hands" && prediction[i].probability.toFixed(2) < 0.90 ) {
+                flag = false;
+                individualfacetouches += 1;
+                console.log("individual facetouches",individualfacetouches);
+                labelContainer.childNodes[3].innerHTML = "Flag: " + flag;
+                labelContainer.childNodes[4].innerHTML = "individual face touches: " + individualfacetouches;
+                //Input time stamp here
+
+                var d = new Date();
+                var dHour = d.getHours();
+
+                for (var q = 1; q < dayArray.length; q++) {
+                     if (dHour == dayArray[q][0]) {
+                        dayArray[q][1] ++;
+                    }
                 }
 
-                const classPrediction =
-                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-                labelContainer.childNodes[i].innerHTML = classPrediction;
-            }
+                // test 
+                // document.getElementById("demo").innerHTML = dayArray;
+
+                break
+                }
+
+
+
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
         }
-    </script>
-  </section>
+    }
 
-  <footer>
-    <p>Powered by Will and Tommaso</p>
-  </footer>
+    async function seeGraph() {
+        // Test print 
+        document.getElementById("demo").innerHTML = dayArray;
 
-  </body>
-  </html>
+        google.charts.load("current", {packages:['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+    
+        var data = google.visualization.arrayToDataTable(dayArray);
+  
+        var options = {
+        title: "Hourly Progress",
+        width: 600,
+        height: 400,
+        bar: {groupWidth: "95%"},
+        legend: { position: "none" },
+        vAxes: {
+            0: {title: 'Number of Touches'},
+        },
+         hAxis: {
+            title: 'Hours',
+        }
 
+
+      };
+      var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
+      chart.draw(data, options);
+    }
+    
+
+</script>
+
+
+
+<body>
+    <h4> No Touch: 1.00 means you are not touching your face </h4>
+    <h4> Touch: 1.00 means you are touching your face </h4>
+
+   <h5> Add features here </h5>
+</body>
+
+<body>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+    google.charts.load("current", {packages:['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable(dayArray, opt_firstRowIsData=true);
+
+      var options = {
+        title: "Hourly Progress",
+        width: 600,
+        height: 400,
+        bar: {groupWidth: "95%"},
+        legend: { position: "none" },
+        vAxes: {
+            0: {title: 'Number of Touches'},
+        }
+
+      };
+      var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
+      chart.draw(data, options);
+    }
+</script>
+</body>
+
+<body>
+    <div id="columnchart_values" style="width: 900px; height: 300px;"></div>
 </body>
 </HTML>
